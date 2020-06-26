@@ -62,12 +62,17 @@ namespace FriskyPaws.MinecraftManager.Services
             var latest = versionManifest.Versions.FirstOrDefault(v => v.Id == versionManifest.Latest.Release);
             await Announce(latest.Id);
             Shutdown();
-            await new Url(latest.Url).DownloadFileAsync(
+            await new Url(await GetServerJarUrl(latest.Url)).DownloadFileAsync(
                 Path.GetDirectoryName(Configuration.MinecraftJar),
                 Path.GetFileName(Configuration.MinecraftJar));
             WriteManifest(latest);
             Startup();
+        }
 
+        private async Task<string> GetServerJarUrl(string url)
+        {
+            var releaseInfo = await new Url(url).GetJsonAsync<ReleaseInfo>();
+            return releaseInfo.Downloads.Server.Url;
         }
 
         private async Task Announce(string version)
